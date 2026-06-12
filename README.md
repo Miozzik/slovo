@@ -25,24 +25,13 @@ Built in **Rust + Tauri v2** with a plain HTML/CSS/JS frontend — no framework,
 
 ## Screenshots
 
-<!--
-  Maintainer: drop your own screenshots into docs/images/ with these exact names.
-  They don't exist in the repo yet — until you add them, the images below simply
-  won't render (GitHub shows the alt text instead), which is fine.
-    - docs/images/screenshot-main.png      — the main translate popup
-    - docs/images/screenshot-settings.png  — the settings panel
-    - docs/images/screenshot-hotkey.png    — the hotkey configuration view
--->
-
 <div align="center">
 
-<img src="docs/images/screenshot-main.png" width="440" alt="Slovo — main translation popup" />
+<img src="docs/images/screenshot-main.png" width="420" alt="Slovo — translating English to Ukrainian" />
+&nbsp;&nbsp;
+<img src="docs/images/screenshot-settings.png" width="420" alt="Slovo — settings panel" />
 
-<br />
-
-<img src="docs/images/screenshot-settings.png" width="440" alt="Slovo — settings" />
-&nbsp;
-<img src="docs/images/screenshot-hotkey.png" width="440" alt="Slovo — hotkey configuration" />
+<sub><em>Instant translation popup (left) · settings with status, hotkey recorder & launch-at-login (right)</em></sub>
 
 </div>
 
