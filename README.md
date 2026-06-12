@@ -77,7 +77,7 @@ If nothing is selected, the popup simply opens empty and ready for you to type.
 
 ### Option 1 — Download the release (recommended)
 
-1. Grab the latest `Slovo_x.y.z_aarch64.dmg` from the [**Releases**](https://github.com/Miozz/slovo/releases) page.
+1. Grab the latest `Slovo_x.y.z_aarch64.dmg` from the [**Releases**](https://github.com/Miozzik/slovo/releases) page.
 2. Open the `.dmg` and drag **Slovo** into your **Applications** folder.
 3. On first launch, **right-click the app → Open**, then confirm.
 
@@ -104,7 +104,7 @@ See [Build from source](#build-from-source) below.
 ### Steps
 
 ```bash
-git clone https://github.com/Miozz/slovo.git
+git clone https://github.com/Miozzik/slovo.git
 cd slovo/src-tauri
 cargo tauri build
 ```

@@ -12,7 +12,7 @@ build steps live in the README — see [**Build from source**](README.md#build-f
 The short version:
 
 ```bash
-git clone https://github.com/Miozz/slovo.git
+git clone https://github.com/Miozzik/slovo.git
 cd slovo/src-tauri
 cargo tauri dev      # for development
 cargo tauri build    # to produce the .app / .dmg
@@ -59,7 +59,7 @@ through those if your change touches the UI or capture flow.
 
 ## Reporting issues
 
-Found a bug or have an idea? [Open an issue](https://github.com/Miozz/slovo/issues) and
+Found a bug or have an idea? [Open an issue](https://github.com/Miozzik/slovo/issues) and
 include, where relevant:
 
 - Your macOS version and chip (Apple Silicon / Intel).
