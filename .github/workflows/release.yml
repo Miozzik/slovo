@@ -1,0 +1,68 @@
+# Release build + publish.
+#
+# Triggered by pushing a version tag (e.g. v0.1.0). Builds the macOS .dmg
+# installer with the Tauri CLI and publishes a GitHub Release with the .dmg
+# attached. Can also be run manually via the Actions tab (workflow_dispatch);
+# a manual run still builds the dmg but the release step needs a tag, so use a
+# tag push for actual releases.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+# Needed so softprops/action-gh-release can create the release and upload assets.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build dmg & publish release (macOS, aarch64)
+    # macos-latest is Apple Silicon (arm64) — produces an aarch64 build.
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      # Install binstall first, then fetch a prebuilt tauri-cli v2 binary.
+      # This is much faster than `cargo install tauri-cli` (no source compile).
+      # Fallback if binstall ever fails: cargo install tauri-cli --version "^2" --locked
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: Install Tauri CLI (v2)
+        run: cargo binstall -y tauri-cli@^2
+
+      # Build only the dmg bundle (tauri.conf.json sets targets to "all", so we
+      # scope it here). This produces both Slovo.app and the .dmg. The build uses
+      # the committed Cargo.lock.
+      - name: Build dmg
+        working-directory: src-tauri
+        run: cargo tauri build --bundles dmg
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # Glob so the version in the filename (Slovo_<version>_aarch64.dmg)
+          # doesn't need to be hardcoded.
+          files: src-tauri/target/release/bundle/dmg/*.dmg
+          generate_release_notes: true
+          body: |
+            ## Slovo — macOS installer
+
+            This build is **ad-hoc signed** (not Apple-notarized). On first launch
+            macOS Gatekeeper will block it, so you must **right-click the app →
+            Open**, then confirm. After the first launch it opens normally.
+
+            Apple Silicon (aarch64) only.

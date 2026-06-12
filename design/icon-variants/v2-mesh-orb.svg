@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Slovo icon concept v2 — mesh-gradient orb on dark squircle. Abstract, Apple-Intelligence vibe. No letters. -->
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgv2" x1="48" y1="48" x2="464" y2="464" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1B2140"/>
+      <stop offset="1" stop-color="#0A0E20"/>
+    </linearGradient>
+    <radialGradient id="orbBase" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="#5BA8FF"/>
+      <stop offset="1" stop-color="#2F5BE0"/>
+    </radialGradient>
+    <radialGradient id="m1" cx="0.3" cy="0.28" r="0.55">
+      <stop offset="0" stop-color="#6BE3FF" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#6BE3FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="m2" cx="0.74" cy="0.34" r="0.55">
+      <stop offset="0" stop-color="#9B6BFF" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#9B6BFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="m3" cx="0.62" cy="0.82" r="0.6">
+      <stop offset="0" stop-color="#34E0C2" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#34E0C2" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="m4" cx="0.28" cy="0.8" r="0.55">
+      <stop offset="0" stop-color="#FF6BC4" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#FF6BC4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="spec2" cx="0.38" cy="0.3" r="0.4">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft2" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="14" stdDeviation="22" flood-color="#3A6BFF" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect x="48" y="48" width="416" height="416" rx="104" fill="url(#bgv2)"/>
+  <!-- faint inner vignette ring -->
+  <rect x="50" y="50" width="412" height="412" rx="102" stroke="#3A4680" stroke-opacity="0.4" stroke-width="2" fill="none"/>
+
+  <g filter="url(#soft2)">
+    <circle cx="256" cy="256" r="138" fill="url(#orbBase)"/>
+  </g>
+  <circle cx="256" cy="256" r="138" fill="url(#m1)"/>
+  <circle cx="256" cy="256" r="138" fill="url(#m2)"/>
+  <circle cx="256" cy="256" r="138" fill="url(#m3)"/>
+  <circle cx="256" cy="256" r="138" fill="url(#m4)"/>
+  <!-- glassy top specular -->
+  <ellipse cx="216" cy="206" rx="78" ry="46" fill="url(#spec2)"/>
+  <!-- thin glass rim -->
+  <circle cx="256" cy="256" r="138" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="2.5"/>
+</svg>

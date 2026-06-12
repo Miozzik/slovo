@@ -1,0 +1,42 @@
+# CI build check.
+#
+# Runs on every push and pull request to main/master. It only compiles the
+# Rust backend in release mode (no bundling) to keep the check fast. The
+# frontend is plain static HTML/CSS/JS (no npm / node / build step), so there
+# is nothing to build there.
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+# Avoid piling up redundant runs for the same ref.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-check:
+    name: Build check (macOS, aarch64)
+    # macos-latest is Apple Silicon (arm64), matching the app's target arch.
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      # Caches the cargo registry and target dir keyed on the src-tauri workspace.
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      # --locked enforces the committed Cargo.lock (which pins `time` to 0.3.47;
+      # 0.3.48 is broken). We never run `cargo update`.
+      - name: Build (release, locked lockfile)
+        run: cargo build --release --manifest-path src-tauri/Cargo.toml --locked

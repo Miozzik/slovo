@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slovo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Frameless window container. It fills the OS window EXACTLY so it aligns
+       1:1 with the native macOS vibrancy (no second rectangle behind it).
+       The inner wrapper carries the padding. -->
+  <main class="window">
+   <div class="window-inner">
+
+    <!-- Top bar: the entire strip is a drag region so the user can move the
+         frameless window. Buttons are excluded from dragging. -->
+    <!-- Native macOS traffic-light buttons (red/yellow/green) sit at the top-left
+         via titleBarStyle:Overlay. The bar is left-padded to clear them; the red
+         button closes the window to the menubar. -->
+    <header class="topbar" data-tauri-drag-region>
+      <span class="title" data-tauri-drag-region>Slovo</span>
+      <div class="topbar-actions">
+        <button id="settingsBtn" class="icon-btn" title="Settings" aria-label="Settings">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="10" cy="10" r="2.6"/>
+            <path d="M10 1.5l1 2 2.2-.6.6 2.2 2 1-1 2 1 2-2 1-.6 2.2-2.2-.6-1 2-1-2-2.2.6-.6-2.2-2-1 1-2-1-2 2-1 .6-2.2 2.2.6z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Source text -->
+    <section class="field">
+      <textarea
+        id="sourceText"
+        class="text-area source"
+        placeholder="Enter or select text&hellip;"
+        spellcheck="false"
+        autocomplete="off"></textarea>
+    </section>
+
+    <!-- Control row: source lang | swap | target lang | translate -->
+    <section class="controls">
+      <div class="select-wrap">
+        <select id="sourceLang" class="select" aria-label="Source language"></select>
+      </div>
+
+      <button id="swapBtn" class="icon-btn swap" title="Swap languages" aria-label="Swap languages">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 7h11"/>
+          <path d="M12 4l3 3-3 3"/>
+          <path d="M16 13H5"/>
+          <path d="M8 10l-3 3 3 3"/>
+        </svg>
+      </button>
+
+      <div class="select-wrap">
+        <select id="targetLang" class="select" aria-label="Target language"></select>
+      </div>
+
+      <button id="translateBtn" class="primary-btn" title="Translate (Cmd/Ctrl+Enter)">Translate</button>
+    </section>
+
+    <!-- Result -->
+    <section class="field">
+      <div id="result" class="text-area result" aria-live="polite" data-empty="true"></div>
+    </section>
+
+    <!-- Settings panel (hidden by default) -->
+    <section id="settingsPanel" class="settings-panel" hidden>
+      <div class="settings-inner">
+        <label class="settings-label" for="apiKey">DeepL API key</label>
+        <input
+          id="apiKey"
+          class="text-input"
+          type="password"
+          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:fx"
+          autocomplete="off"
+          spellcheck="false" />
+        <div class="settings-row">
+          <span class="hint">Get a free key at <a href="https://www.deepl.com/pro-api" target="_blank" rel="noopener">deepl.com/pro-api</a></span>
+          <button id="saveSettingsBtn" class="primary-btn small">Save</button>
+        </div>
+
+        <!-- Status section: live indicators for the DeepL key and macOS
+             Accessibility permission. Both badges are refreshed by main.js
+             (refreshStatuses) whenever settings opens, after saving, after a
+             Grant request, and when the window regains focus. -->
+        <div class="status-section">
+          <div class="status-row">
+            <span class="status-label">DeepL key</span>
+            <span id="keyStatus" class="status-badge warn">Not set</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">
+              Accessibility
+              <span class="status-subhint">needed for &#8984;&#8679;T capture</span>
+            </span>
+            <span class="status-badge-group">
+              <button id="grantAccessBtn" class="primary-btn small" hidden>Grant</button>
+              <span id="accessStatus" class="status-badge warn">Not granted</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Global hotkey recorder. The pill displays the CURRENT accelerator
+             as friendly Apple symbols (e.g. ⌘⇧T). Clicking it enters "recording"
+             mode and captures the next real key combo, then saves it via the
+             set_hotkey backend command. Reset restores the macOS default. -->
+        <div class="status-row hotkey-row">
+          <span class="status-label">
+            Global hotkey
+            <span class="status-subhint">click to record a new shortcut</span>
+          </span>
+          <span class="hotkey-controls">
+            <span id="hotkeyError" class="hotkey-error" role="alert" hidden></span>
+            <button id="hotkeyReset" class="hotkey-reset" type="button">Reset</button>
+            <button id="hotkeyRecorder" class="hotkey-recorder" type="button"
+              title="Click, then press a key combo" aria-label="Record global hotkey">&#8230;</button>
+          </span>
+        </div>
+
+        <label class="toggle-row" for="autostartToggle">
+          <span class="toggle-label">Launch at login</span>
+          <span class="switch">
+            <input id="autostartToggle" type="checkbox" role="switch" aria-label="Launch at login" />
+            <span class="switch-track" aria-hidden="true"></span>
+          </span>
+        </label>
+      </div>
+    </section>
+
+   </div><!-- /.window-inner -->
+  </main>
+
+  <script src="main.js"></script>
+</body>
+</html>

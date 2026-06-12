@@ -1,0 +1,587 @@
+/* =========================================================================
+   Slovo — Apple/macOS Sonoma popover aesthetic
+   Transparent window so native vibrancy shows through; .window adds the
+   translucent fallback + blur. Full light/dark support.
+   ========================================================================= */
+
+:root {
+  --accent: #007AFF;          /* macOS accent blue (light) */
+  --accent-hover: #0A6FE0;
+  --radius-window: 16px;
+  --radius-input: 10px;
+  --radius-btn: 9px;
+  --ease: 150ms ease;
+
+  /* Window tint is a *very light* contrast wash layered ON TOP of the native
+     macOS vibrancy — NOT an opaque panel. Keeping it near-transparent prevents
+     a second visible rectangle behind the rounded content. */
+  --window-tint: rgba(255, 255, 255, 0.04);
+  --surface: rgba(255, 255, 255, 0.55);
+  --surface-2: rgba(0, 0, 0, 0.035);
+  --surface-2-hover: rgba(0, 0, 0, 0.06);
+  --hairline: rgba(0, 0, 0, 0.10);
+  --border-window: rgba(255, 255, 255, 0.18);
+  --text: #1d1d1f;
+  --text-dim: rgba(60, 60, 67, 0.6);
+  --placeholder: rgba(60, 60, 67, 0.35);
+  --error: #FF3B30;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.10);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #0A84FF;
+    --accent-hover: #3A9BFF;
+    --window-tint: rgba(0, 0, 0, 0.08);
+    --surface: rgba(30, 30, 30, 0.55);
+    --surface-2: rgba(255, 255, 255, 0.06);
+    --surface-2-hover: rgba(255, 255, 255, 0.10);
+    --hairline: rgba(255, 255, 255, 0.10);
+    --border-window: rgba(255, 255, 255, 0.12);
+    --text: #f5f5f7;
+    --text-dim: rgba(235, 235, 245, 0.6);
+    --placeholder: rgba(235, 235, 245, 0.30);
+    --error: #FF453A;
+    --shadow: 0 14px 44px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Status badges: brighter green text on a slightly stronger wash so the
+     pills stay legible against the dark vibrancy. */
+  .status-badge.ok {
+    background: color-mix(in srgb, #30D158 22%, transparent);
+    color: #30D158;
+  }
+  .status-badge.warn {
+    background: color-mix(in srgb, var(--error) 20%, transparent);
+    color: var(--error);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  /* Height hugs the content; JS keeps the OS window synced to this height
+     (see fitWindow) so there is never empty translucent space below the UI. */
+  height: auto;
+  /* Transparent so native macOS vibrancy/blur is visible behind the window. */
+  background: transparent;
+  overflow: hidden;
+  font-family: -apple-system, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  user-select: none;
+}
+
+/* --------------------------------------------------------------------- */
+/* Window container                                                       */
+/* --------------------------------------------------------------------- */
+/* The content layer fills the OS window EXACTLY so it aligns 1:1 with the
+   native NSVisualEffectView. No outer margin/gap, no opaque fill, and no
+   stacked backdrop-filter — otherwise the native vibrancy peeks out as a
+   second dark rectangle behind these rounded corners. The tint is a very
+   light contrast wash only. */
+.window {
+  width: 100%;
+  /* Hug the content height (JS resizes the OS window to match) so there's no
+     empty translucent area below the UI. */
+  height: auto;
+  box-sizing: border-box;
+  background: var(--window-tint);
+  /* The native window frame (decorations:true) rounds the corners and casts the
+     shadow now, so the content itself stays square and the OS clips it. */
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inner wrapper carries the padding so .window can stay edge-to-edge with the
+   OS window — keeping the content inset without revealing a layer behind. */
+.window-inner {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 14px 14px;
+  overflow: visible;
+}
+
+/* --------------------------------------------------------------------- */
+/* Top bar (drag region)                                                  */
+/* --------------------------------------------------------------------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 30px;
+  /* Leave room on the left for the native macOS traffic-light buttons that the
+     Overlay title bar draws over the top-left of the content. */
+  padding-left: 60px;
+  cursor: default;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--text-dim);
+  padding-left: 2px;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Buttons                                                                */
+/* --------------------------------------------------------------------- */
+.icon-btn {
+  -webkit-app-region: no-drag;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background var(--ease), color var(--ease), transform var(--ease);
+}
+.icon-btn:hover { background: var(--surface-2-hover); color: var(--text); }
+.icon-btn:active { transform: scale(0.92); }
+.icon-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Inline SVG icons inherit the button color via currentColor and stay centered. */
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  pointer-events: none;
+}
+
+.icon-btn.swap {
+  width: 30px;
+  height: 30px;
+  background: var(--surface-2);
+  flex: 0 0 auto;
+}
+.icon-btn.swap svg { width: 17px; height: 17px; }
+.icon-btn.swap:hover { background: var(--surface-2-hover); }
+
+.primary-btn {
+  -webkit-app-region: no-drag;
+  height: 30px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 590;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--ease), transform var(--ease), opacity var(--ease);
+}
+.primary-btn:hover { background: var(--accent-hover); }
+.primary-btn:active { transform: scale(0.97); }
+.primary-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.primary-btn:disabled { opacity: 0.55; cursor: default; transform: none; }
+.primary-btn.small { height: 28px; padding: 0 14px; }
+
+/* --------------------------------------------------------------------- */
+/* Text areas (source + result)                                          */
+/* --------------------------------------------------------------------- */
+.field { display: flex; }
+
+.text-area {
+  flex: 1;
+  min-height: 76px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 11px 13px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-input);
+  resize: none;
+  user-select: text;
+  transition: border-color var(--ease), background var(--ease), box-shadow var(--ease);
+}
+.text-area::placeholder { color: var(--placeholder); }
+.text-area.source:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.result { white-space: pre-wrap; word-break: break-word; }
+.result[data-empty="true"]::before {
+  content: "Translation";
+  color: var(--placeholder);
+}
+.result.loading { color: var(--text-dim); font-style: italic; }
+.result.error { color: var(--error); }
+
+/* Spinner SVG shown next to "Translating…". Inherits color via currentColor
+   and rotates via CSS. */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 7px;
+  vertical-align: -2px;
+  color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+.spinner svg { width: 14px; height: 14px; display: block; }
+
+/* Inline error glyph prefixing an error message. */
+.result-glyph {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: -2px;
+  color: var(--error);
+}
+.result-glyph svg { width: 14px; height: 14px; display: block; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --------------------------------------------------------------------- */
+/* Controls row + custom select                                          */
+/* --------------------------------------------------------------------- */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.select-wrap {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* Custom chevron */
+.select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -5px;
+  border-right: 1.5px solid var(--text-dim);
+  border-bottom: 1.5px solid var(--text-dim);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.select {
+  -webkit-app-region: no-drag;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 30px;
+  padding: 0 26px 0 11px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  text-overflow: ellipsis;
+  transition: background var(--ease), border-color var(--ease), box-shadow var(--ease);
+}
+.select:hover { background: var(--surface-2-hover); }
+.select:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.select option { color: #1d1d1f; }
+
+/* --------------------------------------------------------------------- */
+/* Settings panel                                                         */
+/* --------------------------------------------------------------------- */
+.settings-panel {
+  border-top: 1px solid var(--hairline);
+  padding-top: 12px;
+  animation: slideDown 180ms ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.settings-inner { display: flex; flex-direction: column; gap: 8px; }
+
+.settings-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.text-input {
+  height: 32px;
+  padding: 0 12px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-input);
+  user-select: text;
+  transition: border-color var(--ease), background var(--ease), box-shadow var(--ease);
+}
+.text-input::placeholder { color: var(--placeholder); }
+.text-input:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hint { font-size: 11.5px; color: var(--text-dim); line-height: 1.3; }
+.hint a { color: var(--accent); text-decoration: none; }
+.hint a:hover { text-decoration: underline; }
+
+/* --------------------------------------------------------------------- */
+/* Status section (DeepL key + Accessibility indicators)                  */
+/* --------------------------------------------------------------------- */
+.status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.status-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.status-subhint {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+/* Right-aligned cluster holding the optional Grant button + the badge. */
+.status-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+/* Small rounded pill. .ok = green, .warn = muted/red. */
+.status-badge {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 590;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.status-badge.ok {
+  background: color-mix(in srgb, #34C759 18%, transparent);
+  color: #248A3D;
+}
+.status-badge.warn {
+  background: color-mix(in srgb, var(--error) 16%, transparent);
+  color: var(--error);
+}
+
+/* --------------------------------------------------------------------- */
+/* Global hotkey recorder                                                 */
+/* --------------------------------------------------------------------- */
+/* The row reuses .status-row layout so it lines up with the badges above.
+   Its own top border + spacing makes it read as a distinct setting. */
+.hotkey-row {
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
+}
+
+/* Right-side cluster: inline error + Reset + the recorder pill. */
+.hotkey-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+/* The recorder looks like a small key-cap pill showing the current shortcut.
+   min-width keeps it from jumping width as the symbols change. */
+.hotkey-recorder {
+  -webkit-app-region: no-drag;
+  min-width: 56px;
+  padding: 3px 10px;
+  font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 590;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--ease), border-color var(--ease), box-shadow var(--ease), color var(--ease);
+}
+.hotkey-recorder:hover { background: var(--surface-2-hover); }
+.hotkey-recorder:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Recording state: accent border + a soft pulsing accent ring so it's clear
+   the field is now listening for a key combo. */
+.hotkey-recorder.recording {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  animation: hotkeyPulse 1.3s ease-in-out infinite;
+}
+@keyframes hotkeyPulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 38%, transparent); }
+  50%      { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+
+/* Small dim text button to restore the default shortcut. */
+.hotkey-reset {
+  -webkit-app-region: no-drag;
+  padding: 0;
+  font-family: inherit;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color var(--ease);
+}
+.hotkey-reset:hover { color: var(--text); text-decoration: underline; }
+.hotkey-reset:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 4px;
+}
+
+/* Brief inline validation/error message shown beside the recorder. */
+.hotkey-error {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--error);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------- */
+/* Launch-at-login toggle (iOS/macOS pill switch)                         */
+/* --------------------------------------------------------------------- */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
+  cursor: pointer;
+}
+.toggle-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.toggle-row.error .toggle-label { color: var(--error); }
+
+/* The switch wraps a visually-hidden checkbox + a styled track. */
+.switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 24px;
+}
+.switch input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+.switch-track {
+  position: absolute;
+  inset: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  transition: background var(--ease), border-color var(--ease);
+}
+.switch-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.2);
+  transition: transform var(--ease);
+}
+.switch input:checked + .switch-track {
+  background: var(--accent);
+  border-color: transparent;
+}
+.switch input:checked + .switch-track::after {
+  transform: translateX(16px);
+}
+.switch input:focus-visible + .switch-track {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.switch input:disabled { cursor: default; }
+.switch input:disabled + .switch-track { opacity: 0.6; }

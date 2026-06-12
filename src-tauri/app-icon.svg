@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Slovo app icon — globe merged with a chat bubble, single mark, on blue squircle. No letters. -->
+<svg width="1024" height="1024" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgv3" x1="80" y1="60" x2="440" y2="460" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2EA0FF"/>
+      <stop offset="0.55" stop-color="#0A6BFF"/>
+      <stop offset="1" stop-color="#0B3AD6"/>
+    </linearGradient>
+    <radialGradient id="glowv3" cx="0.3" cy="0.24" r="0.8">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="globeFill" cx="0.4" cy="0.36" r="0.7">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCEBFF"/>
+    </radialGradient>
+    <linearGradient id="merid" x1="0" y1="0" x2="0" y2="512">
+      <stop offset="0" stop-color="#2EA0FF"/>
+      <stop offset="1" stop-color="#0B3AD6"/>
+    </linearGradient>
+    <filter id="soft3" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#062466" flood-opacity="0.38"/>
+    </filter>
+    <clipPath id="globeClip"><circle cx="240" cy="248" r="118"/></clipPath>
+  </defs>
+
+  <rect x="48" y="48" width="416" height="416" rx="104" fill="url(#bgv3)"/>
+  <rect x="48" y="48" width="416" height="416" rx="104" fill="url(#glowv3)"/>
+
+  <!-- Globe body -->
+  <g filter="url(#soft3)">
+    <circle cx="240" cy="248" r="118" fill="url(#globeFill)"/>
+  </g>
+  <!-- Meridians & parallels (clipped to globe) -->
+  <g clip-path="url(#globeClip)" stroke="url(#merid)" stroke-width="9" fill="none" stroke-opacity="0.9" stroke-linecap="round">
+    <line x1="240" y1="128" x2="240" y2="368"/>
+    <ellipse cx="240" cy="248" rx="52" ry="118"/>
+    <ellipse cx="240" cy="248" rx="108" ry="40"/>
+    <line x1="122" y1="248" x2="358" y2="248"/>
+  </g>
+  <circle cx="240" cy="248" r="118" fill="none" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="3"/>
+
+  <!-- Chat bubble overlapping bottom-right, unifying the mark -->
+  <g filter="url(#soft3)">
+    <path d="M300 270h78a40 40 0 0 1 40 40v52a40 40 0 0 1-40 40h-30l-30 28a10 10 0 0 1-17-8v-20h-1a40 40 0 0 1-40-40v-52a40 40 0 0 1 40-40z"
+          fill="#0A6BFF" stroke="#FFFFFF" stroke-width="9"/>
+    <!-- three dots = conversation -->
+    <circle cx="318" cy="336" r="9" fill="#FFFFFF"/>
+    <circle cx="349" cy="336" r="9" fill="#FFFFFF"/>
+    <circle cx="380" cy="336" r="9" fill="#FFFFFF"/>
+  </g>
+</svg>

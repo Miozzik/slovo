@@ -1,0 +1,38 @@
+[package]
+name = "slovo"
+version = "0.1.0"
+edition = "2021"
+
+# A library is required so the same code can be compiled as a Tauri app
+# (cdylib/staticlib on mobile/desktop) and unit-tested as an rlib.
+[lib]
+name = "slovo_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Cross-platform dependencies (compile on Linux CI and macOS target alike).
+tauri = { version = "2", features = ["macos-private-api", "tray-icon"] }
+tauri-plugin-global-shortcut = "2"
+# Launch-at-login (autostart) support. On macOS this manages a LaunchAgent.
+tauri-plugin-autostart = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# rustls avoids needing OpenSSL system libraries (important for clean Linux CI).
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+dirs = "5"
+# tokio is already pulled in transitively by Tauri's runtime; we declare it
+# directly so `tokio::join!` is importable. Only the `macros` feature is needed.
+tokio = { version = "1", features = ["macros"] }
+
+# macOS-only dependencies. These are NOT compiled on Linux, so the CI build
+# in the Linux VM never tries to pull in AppKit / clipboard / input bindings.
+[target.'cfg(target_os = "macos")'.dependencies]
+enigo = "0.2"
+arboard = "3"
+window-vibrancy = "0.5"
+# Checks/requests the macOS Accessibility permission (required so our synthetic
+# ⌘C in capture.rs is actually honored by the system).
+macos-accessibility-client = "0.0.1"

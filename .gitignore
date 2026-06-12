@@ -1,0 +1,27 @@
+# --- Rust / Cargo build artifacts ---
+target/
+src-tauri/target/
+
+# IMPORTANT: do NOT ignore Cargo.lock — it is committed on purpose because it
+# pins the `time` crate to a version that compiles (0.3.48 breaks the build).
+
+# --- Tauri generated files ---
+src-tauri/gen/schemas/
+
+# --- Distributables ---
+*.dmg
+
+# --- macOS cruft ---
+**/.DS_Store
+
+# --- Tooling / agents ---
+.claude-flow/
+
+# --- Node (not used, but keep clean just in case) ---
+node_modules/
+
+# --- Editors / IDEs ---
+.idea/
+.vscode/
+*.swp
+*~
