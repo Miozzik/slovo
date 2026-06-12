@@ -51,6 +51,13 @@ jobs:
         working-directory: src-tauri
         run: cargo tauri build --bundles dmg
 
+      # Give the .dmg a custom Finder icon (the Slovo app icon) instead of the
+      # generic disk-image icon. Uses Xcode CLT tools present on macOS runners.
+      - name: Set DMG icon
+        run: |
+          DMG="$(ls src-tauri/target/release/bundle/dmg/*.dmg | head -1)"
+          bash scripts/set-dmg-icon.sh "$DMG" src-tauri/app-icon.png
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
