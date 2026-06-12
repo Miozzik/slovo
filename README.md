@@ -12,6 +12,8 @@ Press a hotkey anywhere, get an instant translation.
 [![Language: Rust](https://img.shields.io/badge/language-Rust-DEA584?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+**English** · [Українська](README.uk.md)
+
 </div>
 
 ---
