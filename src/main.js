@@ -807,12 +807,25 @@ function wireUI() {
 // ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
+// The Tauri webview ignores `target="_blank"` (no popups), so external links do
+// nothing on click. Route every http(s) link through the backend `open_url`
+// command, which opens it in the system default browser.
+function wireExternalLinks() {
+  document.querySelectorAll('a[href^="http"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      invoke("open_url", { url: a.getAttribute("href") });
+    });
+  });
+}
+
 function init() {
   // Populate dropdowns instantly from cache (or hardcoded fallback) so the UI
   // is usable immediately, then refresh from DeepL's live list in the background.
   buildDropdownsFrom(readCachedLangs() || langsFromFallback());
   wireUI();
   wireEvents();
+  wireExternalLinks();    // open external links in the system browser
   setResult("");          // start with empty/placeholder result
   observeWindowSize();    // keep the OS window synced to the content height
   scheduleFit();          // fit once on boot

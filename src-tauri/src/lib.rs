@@ -113,6 +113,28 @@ fn hide_window(app: tauri::AppHandle) {
     conceal_window(&app);
 }
 
+/// Open an external URL in the system default browser. The webview ignores
+/// `target="_blank"` links, so the frontend routes link clicks through here.
+#[tauri::command]
+fn open_url(url: String) -> Result<(), String> {
+    if !(url.starts_with("https://") || url.starts_with("http://")) {
+        return Err("Only http(s) URLs are allowed".to_string());
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = url;
+        Ok(())
+    }
+}
+
 /// Report whether launch-at-login (autostart) is currently enabled. With the
 /// AppleScript launcher this queries System Events' login items, which is
 /// accurate (unlike the LaunchAgent mode's plist check).
@@ -310,6 +332,7 @@ pub fn run() {
             get_settings,
             save_settings,
             hide_window,
+            open_url,
             get_autostart,
             set_autostart,
             get_accessibility,
