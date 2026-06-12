@@ -44,26 +44,29 @@ jobs:
       - name: Install Tauri CLI (v2)
         run: cargo binstall -y tauri-cli@^2
 
-      # Build only the dmg bundle (tauri.conf.json sets targets to "all", so we
-      # scope it here). This produces both Slovo.app and the .dmg. The build uses
+      # Build ONLY the .app bundle (not Tauri's dmg). Tauri's dmg bundler styles
+      # the disk-image window via AppleScript/Finder, which fails on headless CI
+      # runners — so we build the app and package the dmg ourselves below. Uses
       # the committed Cargo.lock.
-      - name: Build dmg
+      - name: Build app
         working-directory: src-tauri
-        run: cargo tauri build --bundles dmg
+        run: cargo tauri build --bundles app
 
-      # Give the .dmg a custom Finder icon (the Slovo app icon) instead of the
-      # generic disk-image icon. Uses Xcode CLT tools present on macOS runners.
-      - name: Set DMG icon
+      # Package the .app into a .dmg with hdiutil (no AppleScript → reliable on
+      # CI), including an /Applications drag-target and the app's Finder icon.
+      - name: Package DMG
         run: |
-          DMG="$(ls src-tauri/target/release/bundle/dmg/*.dmg | head -1)"
-          bash scripts/set-dmg-icon.sh "$DMG" src-tauri/app-icon.png
+          VERSION="$(python3 -c "import json;print(json.load(open('src-tauri/tauri.conf.json'))['version'])")"
+          DMG="Slovo_${VERSION}_aarch64.dmg"
+          bash scripts/package-dmg.sh \
+            src-tauri/target/release/bundle/macos/Slovo.app \
+            "$DMG" "Slovo" src-tauri/app-icon.png
+          echo "DMG=$DMG" >> "$GITHUB_ENV"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          # Glob so the version in the filename (Slovo_<version>_aarch64.dmg)
-          # doesn't need to be hardcoded.
-          files: src-tauri/target/release/bundle/dmg/*.dmg
+          files: ${{ env.DMG }}
           generate_release_notes: true
           body: |
             ## Slovo — macOS installer
