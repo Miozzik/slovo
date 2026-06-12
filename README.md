@@ -186,11 +186,3 @@ learn the project's few quirks (the static frontend, the `Cargo.lock` pin, and t
 
 - [**Tauri**](https://tauri.app) — the lightweight Rust app framework that makes the native window, tray, and global shortcut possible.
 - [**DeepL**](https://www.deepl.com) — for the translation API and its excellent language coverage.
-
----
-
-<div align="center">
-
-Made with care to make the world a little better. 🌍
-
-</div>
