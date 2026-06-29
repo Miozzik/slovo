@@ -52,6 +52,14 @@ jobs:
         working-directory: src-tauri
         run: cargo tauri build --bundles app
 
+      # Give the .app a VALID ad-hoc signature. `cargo tauri build` leaves only a
+      # linker-signed binary with an inconsistent CodeResources, which macOS flags
+      # as "damaged" on download. A proper `codesign --force --deep` fixes that, so
+      # a downloaded build shows the normal "unidentified developer" prompt (and
+      # `xattr -cr` always works) instead of the scary "damaged" error.
+      - name: Ad-hoc sign the app
+        run: codesign --force --deep --sign - src-tauri/target/release/bundle/macos/Slovo.app
+
       # Package the .app into a .dmg with hdiutil (no AppleScript → reliable on
       # CI), including an /Applications drag-target and the app's Finder icon.
       - name: Package DMG
@@ -69,10 +77,20 @@ jobs:
           files: ${{ env.DMG }}
           generate_release_notes: true
           body: |
-            ## Slovo — macOS installer
+            ## Slovo — macOS installer (Apple Silicon)
 
-            This build is **ad-hoc signed** (not Apple-notarized). On first launch
-            macOS Gatekeeper will block it, so you must **right-click the app →
-            Open**, then confirm. After the first launch it opens normally.
+            1. Open the `.dmg` and drag **Slovo** into **Applications**.
+            2. The app is **ad-hoc signed but not Apple-notarized**, so a *downloaded*
+               copy is quarantined by Gatekeeper. Clear the quarantine flag once:
+
+               ```sh
+               xattr -cr /Applications/Slovo.app
+               ```
+
+               Then open it normally. (Alternatively try **right-click → Open**.)
+
+            > A truly seamless, command-free install would require an Apple Developer
+            > account ($99/yr) for notarization. The `xattr` step above is the standard
+            > free workaround and only needs to be run once.
 
             Apple Silicon (aarch64) only.

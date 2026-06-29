@@ -70,11 +70,20 @@ If nothing is selected, the popup simply opens empty and ready for you to type.
 
 1. Grab the latest `Slovo_x.y.z_aarch64.dmg` from the [**Releases**](https://github.com/Miozzik/slovo/releases) page.
 2. Open the `.dmg` and drag **Slovo** into your **Applications** folder.
-3. On first launch, **right-click the app → Open**, then confirm.
+3. Clear the download quarantine once, then open the app:
 
-> ⚠️ **Why right-click → Open?** The app is *ad-hoc signed but not notarized*, so
-> Gatekeeper blocks a normal double-click the first time. Right-click → Open is the
-> standard one-time bypass; afterwards it launches normally.
+   ```sh
+   xattr -cr /Applications/Slovo.app
+   ```
+
+   Afterwards it launches normally (double-click). You can also try **right-click → Open**.
+
+> ⚠️ **Why the `xattr` step?** The app is *ad-hoc signed but not Apple-notarized*.
+> macOS quarantines anything downloaded from the internet, and for a non-notarized
+> app that shows up as a *"…is damaged and can't be opened"* error. `xattr -cr`
+> removes the quarantine flag (a standard, safe, one-time fix). A fully seamless,
+> command-free install would require an Apple Developer account ($99/yr) for
+> notarization.
 
 ### Option 2 — Build from source
 

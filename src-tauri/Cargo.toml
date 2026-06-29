@@ -1,6 +1,6 @@
 [package]
 name = "slovo"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # A library is required so the same code can be compiled as a Tauri app
